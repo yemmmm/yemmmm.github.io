@@ -87,7 +87,13 @@
 <meta property="og:description" content="#软云实验室第三次爬虫任务这次网站爬取的网站是重庆市建设工程招标投标网，这个网站本身存在一些问题，谷歌浏览器好像会把每一项的网站当成弹窗给自动拦截了，直接取消拦截即可，还有一个是600页之后的页数好像是崩溃了的。 ##首先分析网站这是网站首页，通过点击下一页，发现其网址没有发生变化右键-检查 进入程序员模式，这里找到每一项的位置，再找到href属性，发现并不是直接存的网址，而是一个js脚本检查-n">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://i2.bvimg.com/680379/b125f854a5e1cf3b.png">
-<meta property="og:updated_time" content="2019-03-14T13:59:54.658Z">
+<meta property="og:image" content="http://i2.bvimg.com/680379/74f81018b34202c6.png">
+<meta property="og:image" content="http://i2.bvimg.com/680379/ac4934c4599437f9.png">
+<meta property="og:image" content="http://i2.bvimg.com/680379/2f64561769d19dc3.png">
+<meta property="og:image" content="http://i2.bvimg.com/680379/35c6e31ecfefcf14.png">
+<meta property="og:image" content="http://i2.bvimg.com/680379/74f81018b34202c6.png">
+<meta property="og:image" content="http://img.mp.itc.cn/upload/20170215/1ed75549f9d4473eb6575f0635639bd9.jpg">
+<meta property="og:updated_time" content="2019-03-14T14:52:57.085Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="任务三">
 <meta name="twitter:description" content="#软云实验室第三次爬虫任务这次网站爬取的网站是重庆市建设工程招标投标网，这个网站本身存在一些问题，谷歌浏览器好像会把每一项的网站当成弹窗给自动拦截了，直接取消拦截即可，还有一个是600页之后的页数好像是崩溃了的。 ##首先分析网站这是网站首页，通过点击下一页，发现其网址没有发生变化右键-检查 进入程序员模式，这里找到每一项的位置，再找到href属性，发现并不是直接存的网址，而是一个js脚本检查-n">
@@ -302,9 +308,9 @@
 
       
         <p>#软云实验室第三次爬虫任务<br>这次网站爬取的网站是<a href="http://jzzb.cqjsxx.com/CQ_ZB/ForeDisplay/ZBAffiche_Info/ZBAffiche_Info.aspx" target="_blank" rel="noopener">重庆市建设工程招标投标网</a>，这个网站本身存在一些问题，谷歌浏览器好像会把每一项的网站当成弹窗给自动拦截了，直接取消拦截即可，还有一个是600页之后的页数好像是崩溃了的。</p>
-<p>##首先分析网站<br><img src="http://i2.bvimg.com/680379/b125f854a5e1cf3b.png" alt="首页"><br>这是网站首页，通过点击下一页，发现其网址没有发生变化<br><img src alt="程序员模式"><br>右键-检查 进入程序员模式，这里找到每一项的位置，再找到href属性，发现并不是直接存的网址，而是一个js脚本<br><img src alt="network"><br><img src alt="network"><br>检查-network-刷新网页 接收到几个包，点击第一个包，会发现该请求为post请求，下方的Form Data有六个参数<br><img src alt="viewstate"><br>再查看网页源代码，在里面找到了一栏为viewstate的属性，但和post请求的viewstate并不相同</p>
-<p>##开始思考<br>Form Data中的六个参数中第一个参数猜测是后端用来识别这是个翻页操作，第三个参数每次都发生改变，其它参数要么为空要么不改变，所以可以用字典构造表单，然后用FormRequest发送请求。至于Viewstate参数，在我的多次尝试之后，发现每次post请求发送出去的viewstate参数都是上一个网页的viewstate值，我的理解是viewstate是一种用了一次就不能再用的钥匙。现在可以实现翻页操作了。<br>那么翻页是可以了，每个项目的网址怎么获得呢？我不知道url是不是直接在js代码中，但我猜不是，似乎没看到过提取js中url的方法，然后我就猜想可能是js发送一个请求，然后服务器返回数据，js再提取出数据中的url网址。然后我就尝试打开了第一个项目，同时抓取返回的包，包确实是真的有，但返回的却是主页的html，相当于把原来的主页刷新了一遍，我试着查看了一下网页源代码，与原先的网页进行比较，发现在网页源代码的开头处多了一串url，打开之后确实是第一个项目的网页。然后查看返回的这个包的请求表单<br><img src alt="每一项的请求表单"><br>这里格式和之前翻页的时候是差不多的，只有第一个参数有区别，然后再去点击其他项目，虽然每次都在改变，但很容易找出其中的规律。</p>
-<p>到这里似乎这个爬虫就没什么问题了吧？不！我的噩梦才刚刚开始<br><img src alt="一把心酸泪"></p>
+<p>##首先分析网站<br><img src="http://i2.bvimg.com/680379/b125f854a5e1cf3b.png" alt="首页"><br>这是网站首页，通过点击下一页，发现其网址没有发生变化<br><img src="http://i2.bvimg.com/680379/74f81018b34202c6.png" alt="程序员模式"><br>右键-检查 进入程序员模式，这里找到每一项的位置，再找到href属性，发现并不是直接存的网址，而是一个js脚本<br><img src="http://i2.bvimg.com/680379/ac4934c4599437f9.png" alt="network"><br><img src="http://i2.bvimg.com/680379/2f64561769d19dc3.png" alt="network"><br>检查-network-刷新网页 接收到几个包，点击第一个包，会发现该请求为post请求，下方的Form Data有六个参数<br><img src="http://i2.bvimg.com/680379/35c6e31ecfefcf14.png" alt="viewstate"><br>再查看网页源代码，在里面找到了一栏为viewstate的属性，但和post请求的viewstate并不相同</p>
+<p>##开始思考<br>Form Data中的六个参数中第一个参数猜测是后端用来识别这是个翻页操作，第三个参数每次都发生改变，其它参数要么为空要么不改变，所以可以用字典构造表单，然后用FormRequest发送请求。至于Viewstate参数，在我的多次尝试之后，发现每次post请求发送出去的viewstate参数都是上一个网页的viewstate值，我的理解是viewstate是一种用了一次就不能再用的钥匙。现在可以实现翻页操作了。<br>那么翻页是可以了，每个项目的网址怎么获得呢？我不知道url是不是直接在js代码中，但我猜不是，似乎没看到过提取js中url的方法，然后我就猜想可能是js发送一个请求，然后服务器返回数据，js再提取出数据中的url网址。然后我就尝试打开了第一个项目，同时抓取返回的包，包确实是真的有，但返回的却是主页的html，相当于把原来的主页刷新了一遍，我试着查看了一下网页源代码，与原先的网页进行比较，发现在网页源代码的开头处多了一串url，打开之后确实是第一个项目的网页。然后查看返回的这个包的请求表单<br><img src="http://i2.bvimg.com/680379/74f81018b34202c6.png" alt="每一项的请求表单"><br>这里格式和之前翻页的时候是差不多的，只有第一个参数有区别，然后再去点击其他项目，虽然每次都在改变，但很容易找出其中的规律。</p>
+<p>到这里似乎这个爬虫就没什么问题了吧？不！我的噩梦才刚刚开始<br><img src="http://img.mp.itc.cn/upload/20170215/1ed75549f9d4473eb6575f0635639bd9.jpg" alt="一把心酸泪"></p>
 <p>##码代码<br>因为要重复很多次刷新主页的操作，所以我最开始想的是递归，但viewstate参数是原来网页的内容，我找不到方法把viewstate传给下一个函数，只能把两个请求放在了一起，一个是翻页的请求，一个是刷新网页以获取每个项目url的请求。</p>
 
       
