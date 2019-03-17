@@ -330,7 +330,7 @@
       
         
           <h1 id="软云实验室第三次爬虫任务"><a href="#软云实验室第三次爬虫任务" class="headerlink" title="软云实验室第三次爬虫任务"></a>软云实验室第三次爬虫任务</h1><p>这次网站爬取的网站是<a href="http://jzzb.cqjsxx.com/CQ_ZB/ForeDisplay/ZBAffiche_Info/ZBAffiche_Info.aspx" target="_blank" rel="noopener">重庆市建设工程招标投标网</a>，这个网站本身存在一些问题，谷歌浏览器好像会把每一项的网站当成弹窗给自动拦截了，直接取消拦截即可，还有一个是600页之后的页数好像是崩溃了的。</p>
-<h2 id="首先分析网站"><a href="#首先分析网站" class="headerlink" title="首先分析网站"></a>首先分析网站</h2><p><img src="http://i2.bvimg.com/680379/b125f854a5e1cf3b.png" alt="首页"><br>这是网站首页，通过点击下一页，发现其网址没有发生变化<br><img src="http://i2.bvimg.com/680379/74f81018b34202c6.png" alt="程序员模式"><br>右键-检查 进入程序员模式，这里找到每一项的位置，再找到href属性，发现并不是直接存的网址，而是一个js脚本<br>
+<h2 id="首先分析网站"><a href="#首先分析网站" class="headerlink" title="首先分析网站"></a>首先分析网站</h2><p><img src="http://i2.bvimg.com/680379/b125f854a5e1cf3b.png" alt="首页"><br>这是网站首页，通过点击下一页，发现其网址没有发生变化<br><img src="http://i2.bvimg.com/680379/35c6e31ecfefcf14.png" alt="源代码href"><br>查看网页源代码，这里找到每一项的位置，再找到href属性，发现并不是直接存的网址，而是一个js脚本<br>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2019/03/14/任务三/#more" rel="contents">
@@ -644,6 +644,8 @@
   
 
 
+  
+
 
 
 
@@ -682,6 +684,11 @@
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
   
 
 
