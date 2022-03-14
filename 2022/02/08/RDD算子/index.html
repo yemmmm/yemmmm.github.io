@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/tiger32.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/tiger16.ico?v=5.1.4">
+
+
+
+
+
+
+  <meta name="keywords" content="spark,学习,大数据系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="摘抄于尚硅谷资料内容，用于个人学习  RDD的创建感觉没必要另写一篇，就将就写在这前面 RDD的创建从集合（内存）中创建RDD主要有两个方法，parallelize和makeRDD 12345678val sparkConf &#x3D; new SparkConf().setMaster(&quot;local[*]&quot;).setAppName(&quot;spark&quot;)val spa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RDD算子">
+<meta property="og:url" content="http://example.com/2022/02/08/RDD%E7%AE%97%E5%AD%90/index.html">
+<meta property="og:site_name" content="yangx的个人博客">
+<meta property="og:description" content="摘抄于尚硅谷资料内容，用于个人学习  RDD的创建感觉没必要另写一篇，就将就写在这前面 RDD的创建从集合（内存）中创建RDD主要有两个方法，parallelize和makeRDD 12345678val sparkConf &#x3D; new SparkConf().setMaster(&quot;local[*]&quot;).setAppName(&quot;spark&quot;)val spa">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-02-08T02:39:32.000Z">
+<meta property="article:modified_time" content="2022-02-12T09:16:00.914Z">
+<meta property="article:author" content="yangx">
+<meta property="article:tag" content="spark">
+<meta property="article:tag" content="学习">
+<meta property="article:tag" content="大数据系统">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2022/02/08/RDD算子/"/>
+
+
+
+
+
+  <title>RDD算子 | yangx的个人博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">yangx的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/08/RDD%E7%AE%97%E5%AD%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/%E5%A4%B4%E5%83%8F.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="yangx的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RDD算子</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-02-08T10:39:32+08:00">
+                2022-02-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AF%92%E5%81%87%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index">
+                    <span itemprop="name">寒假学习</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2022/02/08/RDD%E7%AE%97%E5%AD%90/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2022/02/08/RDD%E7%AE%97%E5%AD%90/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.5k 字
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  19 分钟
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>摘抄于尚硅谷资料内容，用于个人学习</p>
+</blockquote>
+<p><em>RDD的创建感觉没必要另写一篇，就将就写在这前面</em></p>
+<h2 id="RDD的创建"><a href="#RDD的创建" class="headerlink" title="RDD的创建"></a>RDD的创建</h2><h3 id="从集合（内存）中创建RDD"><a href="#从集合（内存）中创建RDD" class="headerlink" title="从集合（内存）中创建RDD"></a>从集合（内存）中创建RDD</h3><p>主要有两个方法，parallelize和makeRDD</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> sparkConf = <span class="keyword">new</span> <span class="type">SparkConf</span>().setMaster(<span class="string">&quot;local[*]&quot;</span>).setAppName(<span class="string">&quot;spark&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> sparkContext = <span class="keyword">new</span> <span class="type">SparkContext</span>(sparkConf)</span><br><span class="line"><span class="keyword">val</span> rdd1 = sparkContext.parallelize(</span><br><span class="line"> <span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">val</span> rdd2 = sparkContext.makeRDD(</span><br><span class="line"> <span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>在底层makeRDD其实就是parallelize</p>
+<h3 id="从外部存储（文件）创建RDD"><a href="#从外部存储（文件）创建RDD" class="headerlink" title="从外部存储（文件）创建RDD"></a>从外部存储（文件）创建RDD</h3><p>由外部存储系统的数据集创建 RDD 包括：本地的文件系统，所有 Hadoop 支持的数据集，比如 HDFS、HBase 等</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> fileRDD: <span class="type">RDD</span>[<span class="type">String</span>] = sparkContext.textFile(<span class="string">&quot;input&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="从其他-RDD-创建"><a href="#从其他-RDD-创建" class="headerlink" title="从其他 RDD 创建"></a>从其他 RDD 创建</h3><p>主要是通过一个 RDD 运算完后，再产生新的 RDD</p>
+<h3 id="直接创建-RDD（new）"><a href="#直接创建-RDD（new）" class="headerlink" title="直接创建 RDD（new）"></a>直接创建 RDD（new）</h3><p>使用 new 的方式直接构造 RDD，一般由 Spark 框架自身使用</p>
+<hr>
+<p>RDD算子分为转换算子和行动算子两类，转换算子只是RDD的不断封装，不会进行实际的运算(类似于惰性计算)，直到程序遇到行动算子程序才开始按照继承关系进行运算。</p>
+<h1 id="RDD转换算子"><a href="#RDD转换算子" class="headerlink" title="RDD转换算子"></a>RDD转换算子</h1><p>RDD根据数据处理方式的不同将算子整体上分为 Value 类型、双 Value 类型和 Key-Value类型</p>
+<h2 id="Value类型"><a href="#Value类型" class="headerlink" title="Value类型"></a>Value类型</h2><h3 id="map算子"><a href="#map算子" class="headerlink" title="map算子"></a>map算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">map</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](f: <span class="type">T</span> =&gt; <span class="type">U</span>): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+<p>将处理的数据逐条进行映射转换，这里的转换可以是类型的转换，也可以是值的转换<br>转换后数据量不会改变</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD: <span class="type">RDD</span>[<span class="type">Int</span>] = sparkContext.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))</span><br><span class="line"><span class="keyword">val</span> dataRDD1: <span class="type">RDD</span>[<span class="type">Int</span>] = dataRDD.map(</span><br><span class="line"> num =&gt; &#123;</span><br><span class="line">    num * <span class="number">2</span></span><br><span class="line"> &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="mapPartition算子"><a href="#mapPartition算子" class="headerlink" title="mapPartition算子"></a>mapPartition算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mapPartitions</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](</span><br><span class="line"> f: <span class="type">Iterator</span>[<span class="type">T</span>] =&gt; <span class="type">Iterator</span>[<span class="type">U</span>],</span><br><span class="line"> preservesPartitioning: <span class="type">Boolean</span> = <span class="literal">false</span>): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+<p>将待处理的数据以分区为单位发送到计算节点进行处理，这里的处理是指可以进行任意的处理，哪怕是过滤数据<br>与map算子的比较：<strong>速度比map快、会长时间占用内存、数据量可能会有变化（减少或增多）</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1: <span class="type">RDD</span>[<span class="type">Int</span>] = dataRDD.mapPartitions(</span><br><span class="line"> datas =&gt; &#123;</span><br><span class="line">    datas.filter(_==<span class="number">2</span>)</span><br><span class="line"> &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="mapPartitionsWithIndex算子"><a href="#mapPartitionsWithIndex算子" class="headerlink" title="mapPartitionsWithIndex算子"></a>mapPartitionsWithIndex算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mapPartitionsWithIndex</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](</span><br><span class="line"> f: (<span class="type">Int</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">Iterator</span>[<span class="type">U</span>],</span><br><span class="line"> preservesPartitioning: <span class="type">Boolean</span> = <span class="literal">false</span>): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+<p>同mapPartition算子，在处理时同时可以获取当前分区索引</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.mapPartitionsWithIndex(</span><br><span class="line"> (index, datas) =&gt; &#123;</span><br><span class="line">    datas.map(index, _)</span><br><span class="line"> &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="flatMap算子"><a href="#flatMap算子" class="headerlink" title="flatMap算子"></a>flatMap算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">flatMap</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](f: <span class="type">T</span> =&gt; <span class="type">TraversableOnce</span>[<span class="type">U</span>]): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+<p>将处理的数据进行扁平化后再进行映射处理，所以算子也称之为扁平映射</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>),<span class="type">List</span>(<span class="number">3</span>,<span class="number">4</span>)</span><br><span class="line">),<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.flatMap(</span><br><span class="line"> list =&gt; list</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="glom算子"><a href="#glom算子" class="headerlink" title="glom算子"></a>glom算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">glom</span></span>(): <span class="type">RDD</span>[<span class="type">Array</span>[<span class="type">T</span>]]</span><br></pre></td></tr></table></figure>
+<p>将同一个分区的数据直接转换为相同类型的内存数组进行处理，分区不变</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span></span><br><span class="line">),<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1:<span class="type">RDD</span>[<span class="type">Array</span>[<span class="type">Int</span>]] = dataRDD.glom() <span class="comment">//注意此处dataRDD1的数据类型</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="groupBy算子"><a href="#groupBy算子" class="headerlink" title="groupBy算子"></a>groupBy算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">groupBy</span></span>[<span class="type">K</span>](f: <span class="type">T</span> =&gt; <span class="type">K</span>)(<span class="keyword">implicit</span> kt: <span class="type">ClassTag</span>[<span class="type">K</span>]): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">T</span>])]</span><br></pre></td></tr></table></figure>
+<p>将数据根据指定的规则进行分组, 分区数默认不变，但是数据会被打乱重新组合。极限情况下，数据可能被分在同一个分区中<br><strong>一个组的数据在一个分区中，但是并不是说一个分区中只有一个组</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 按照奇偶对数据进行分组</span></span><br><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>),<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.groupBy(</span><br><span class="line">    _%<span class="number">2</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="filter算子"><a href="#filter算子" class="headerlink" title="filter算子"></a>filter算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filter</span></span>(f: <span class="type">T</span> =&gt; <span class="type">Boolean</span>): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>将数据根据指定的规则进行筛选过滤，符合规则的数据保留，不符合规则的数据丢弃。<br>当数据进行筛选过滤后，分区不变，但是分区内的数据可能不均衡，生产环境下，可能会出现数据倾斜。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span></span><br><span class="line">),<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.filter(_%<span class="number">2</span> == <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="sample算子"><a href="#sample算子" class="headerlink" title="sample算子"></a>sample算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sample</span></span>(</span><br><span class="line">withReplacement: <span class="type">Boolean</span>,</span><br><span class="line"> fraction: <span class="type">Double</span>,</span><br><span class="line"> seed: <span class="type">Long</span> = <span class="type">Utils</span>.random.nextLong): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>根据指定的规则从数据集中抽取数据</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span></span><br><span class="line">),<span class="number">1</span>)</span><br><span class="line"><span class="comment">// 抽取数据不放回（伯努利算法）</span></span><br><span class="line"><span class="comment">// 伯努利算法：又叫 0、1 分布。例如扔硬币，要么正面，要么反面。</span></span><br><span class="line"><span class="comment">// 具体实现：根据种子和随机算法算出一个数和第二个参数设置几率比较，小于第二个参数要，大于不</span></span><br><span class="line">要</span><br><span class="line"><span class="comment">// 第一个参数：抽取的数据是否放回，false：不放回</span></span><br><span class="line"><span class="comment">// 第二个参数：抽取的几率，范围在[0,1]之间,0：全不取；1：全取；</span></span><br><span class="line"><span class="comment">// 第三个参数：随机数种子</span></span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.sample(<span class="literal">false</span>, <span class="number">0.5</span>)</span><br><span class="line"><span class="comment">// 抽取数据放回（泊松算法）</span></span><br><span class="line"><span class="comment">// 第一个参数：抽取的数据是否放回，true：放回；false：不放回</span></span><br><span class="line"><span class="comment">// 第二个参数：重复数据的几率，范围大于等于 0.表示每一个元素被期望抽取到的次数</span></span><br><span class="line"><span class="comment">// 第三个参数：随机数种子</span></span><br><span class="line"><span class="keyword">val</span> dataRDD2 = dataRDD.sample(<span class="literal">true</span>, <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="distinct算子"><a href="#distinct算子" class="headerlink" title="distinct算子"></a>distinct算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">distinct</span></span>()(<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>] = <span class="literal">null</span>): <span class="type">RDD</span>[<span class="type">T</span>]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">distinct</span></span>(numPartitions: <span class="type">Int</span>)(<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>] = <span class="literal">null</span>): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>将数据集中重复的数据去重<br>若带参数则函数参数意义为分区数量，<del>函数柯里化参数是排序？</del><br><strong>去重原理</strong>：使用map算子把元素转为一个带有null的元组；使用reducebykey对具有相同key的元素进行统计；之后再使用map算子，取得元组中的单词元素，实现去重的效果。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">2</span></span><br><span class="line">),<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.distinct()</span><br><span class="line"><span class="keyword">val</span> dataRDD2 = dataRDD.distinct(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="coalesce算子"><a href="#coalesce算子" class="headerlink" title="coalesce算子"></a>coalesce算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">coalesce</span></span>(numPartitions: <span class="type">Int</span>, shuffle: <span class="type">Boolean</span> = <span class="literal">false</span>,</span><br><span class="line"> partitionCoalescer: <span class="type">Option</span>[<span class="type">PartitionCoalescer</span>] = <span class="type">Option</span>.empty)</span><br><span class="line"> (<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>] = <span class="literal">null</span>):<span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>根据数据量缩减分区，用于大数据集过滤后，提高小数据集的执行效率<br>当 spark 程序中，存在过多的小任务的时候，可以通过 coalesce 方法，收缩合并分区，减少分区的个数，减小任务调度成本<br>默认情况下是不会将一个分区内的数据打乱与其他分区组合的，可以选择第二个参数实现shuffle<br>该算子也可以扩大分区，但必须将shuffle置为true，否则没有意义</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">2</span></span><br><span class="line">),<span class="number">6</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.coalesce(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="repartition算子"><a href="#repartition算子" class="headerlink" title="repartition算子"></a>repartition算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">repartition</span></span>(numPartitions: <span class="type">Int</span>)(<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>] = <span class="literal">null</span>): <span class="type">RDD</span>[<span class="type">T</span>]   </span><br></pre></td></tr></table></figure>
+<p>该操作内部其实执行的是 coalesce 操作，参数 shuffle 的默认值为 true。无论是将分区数多的<br>RDD 转换为分区数少的 RDD，还是将分区数少的 RDD 转换为分区数多的 RDD，repartition<br>操作都可以完成，因为无论如何都会经 shuffle 过程。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">2</span></span><br><span class="line">),<span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.repartition(<span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="sortBy算子"><a href="#sortBy算子" class="headerlink" title="sortBy算子"></a>sortBy算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sortBy</span></span>[<span class="type">K</span>](</span><br><span class="line"> f: (<span class="type">T</span>) =&gt; <span class="type">K</span>,</span><br><span class="line"> ascending: <span class="type">Boolean</span> = <span class="literal">true</span>,</span><br><span class="line"> numPartitions: <span class="type">Int</span> = <span class="keyword">this</span>.partitions.length)</span><br><span class="line"> (<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">K</span>], ctag: <span class="type">ClassTag</span>[<span class="type">K</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>该操作用于排序数据。在排序之前，可以将数据通过 f 函数进行处理，之后按照 f 函数处理<br>的结果进行排序，默认为升序排列。排序后新产生的 RDD 的分区数与原 RDD 的分区数一<br>致。中间存在 shuffle 的过程</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = sparkContext.makeRDD(<span class="type">List</span>(</span><br><span class="line"> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">2</span></span><br><span class="line">),<span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD1 = dataRDD.sortBy(num=&gt;num, <span class="literal">false</span>, <span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="双Value类型"><a href="#双Value类型" class="headerlink" title="双Value类型"></a>双Value类型</h2><h3 id="intersection算子"><a href="#intersection算子" class="headerlink" title="intersection算子"></a>intersection算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">intersection</span></span>(other: <span class="type">RDD</span>[<span class="type">T</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>对源 RDD 和参数 RDD 求交集后返回一个新的 RDD </p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 = sparkContext.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))</span><br><span class="line"><span class="keyword">val</span> dataRDD2 = sparkContext.makeRDD(<span class="type">List</span>(<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>))</span><br><span class="line"><span class="keyword">val</span> dataRDD = dataRDD1.intersection(dataRDD2)</span><br></pre></td></tr></table></figure>
+
+<h3 id="union算子"><a href="#union算子" class="headerlink" title="union算子"></a>union算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">union</span></span>(other: <span class="type">RDD</span>[<span class="type">T</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>对源 RDD 和参数 RDD 求并集后返回一个新的 RDD</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = dataRDD1.union(dataRDD2)</span><br></pre></td></tr></table></figure>
+
+<h3 id="subtract算子"><a href="#subtract算子" class="headerlink" title="subtract算子"></a>subtract算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">subtract</span></span>(other: <span class="type">RDD</span>[<span class="type">T</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>以一个 RDD 元素为主，去除两个 RDD 中重复元素，将其他元素保留下来。求差集<br><strong>交集、并集和差集要求两个RDD数据源数据类型必须相同</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = dataRDD1.subtract(dataRDD2)</span><br></pre></td></tr></table></figure>
+
+<h3 id="zip算子"><a href="#zip算子" class="headerlink" title="zip算子"></a>zip算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">zip</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](other: <span class="type">RDD</span>[<span class="type">U</span>]): <span class="type">RDD</span>[(<span class="type">T</span>, <span class="type">U</span>)]</span><br></pre></td></tr></table></figure>
+<p>将两个 RDD 中的元素，以键值对的形式进行合并。其中，键值对中的 Key 为第 1 个 RDD中的元素，Value 为第 2 个 RDD 中的相同位置的元素。<br><strong>必须保证分区数量相等，分区中数据的数量必须一致（区别于scala中zip）</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD = dataRDD1.zip(dataRDD2)</span><br></pre></td></tr></table></figure>
+<h2 id="Key-Value-类型"><a href="#Key-Value-类型" class="headerlink" title="Key - Value 类型"></a>Key - Value 类型</h2><p>数据的类型必须是键值元组才能使用key-value类型算子</p>
+<h3 id="partitionBy算子"><a href="#partitionBy算子" class="headerlink" title="partitionBy算子"></a>partitionBy算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">partitionBy</span></span>(partitioner: <span class="type">Partitioner</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br></pre></td></tr></table></figure>
+<p>spark的分区器：只有涉及到 key-value 类型的RDD才会用到分区器，因为分区是以key分区的<br>将数据按照指定 Partitioner 重新进行分区。Spark 默认的分区器是 HashPartitioner<br>如果重分区的分区器和当前 RDD 的分区器一样，不会进行操作</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">String</span>)] =</span><br><span class="line"> sc.makeRDD(<span class="type">Array</span>((<span class="number">1</span>,<span class="string">&quot;aaa&quot;</span>),(<span class="number">2</span>,<span class="string">&quot;bbb&quot;</span>),(<span class="number">3</span>,<span class="string">&quot;ccc&quot;</span>)),<span class="number">3</span>)</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.<span class="type">HashPartitioner</span></span><br><span class="line"><span class="keyword">val</span> rdd2: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">String</span>)] =</span><br><span class="line"> rdd.partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">2</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="reduceByKey算子"><a href="#reduceByKey算子" class="headerlink" title="reduceByKey算子"></a>reduceByKey算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reduceByKey</span></span>(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reduceByKey</span></span>(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>, numPartitions: <span class="type">Int</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br></pre></td></tr></table></figure>
+<p>可以将数据按照相同的 Key 对 Value 进行聚合<br>按照第一个元素进行聚合后对第二个元素进行计算，若有多条数据聚合到了一起则两两进行运算，若只有一条数据不会进行后面的函数运算</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 = sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;b&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> dataRDD2 = dataRDD1.reduceByKey(_+_)</span><br><span class="line"><span class="keyword">val</span> dataRDD3 = dataRDD1.reduceByKey(_+_, <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="groupByKey算子"><a href="#groupByKey算子" class="headerlink" title="groupByKey算子"></a>groupByKey算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">groupByKey</span></span>(): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">V</span>])]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">groupByKey</span></span>(numPartitions: <span class="type">Int</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">V</span>])]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">groupByKey</span></span>(partitioner: <span class="type">Partitioner</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">V</span>])]</span><br></pre></td></tr></table></figure>
+<p>将数据源的数据根据 key 对 value 进行分组<br><strong>reduceByKey和groupByKey的对比</strong>：<br>&amp;nbsp;&amp;nbsp; reduce会在shuffl前进行预聚合（在分区内进行聚合），减少落盘的数据量，性能比group好<br>&amp;nbsp;&amp;nbsp; reduce包含了分组和聚合的功能，group只有聚合的功能</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 =</span><br><span class="line"> sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;b&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> dataRDD2 = dataRDD1.groupByKey()</span><br><span class="line"><span class="keyword">val</span> dataRDD3 = dataRDD1.groupByKey(<span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> dataRDD4 = dataRDD1.groupByKey(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">2</span>))  </span><br></pre></td></tr></table></figure>
+
+<h3 id="aggregateByKey算子"><a href="#aggregateByKey算子" class="headerlink" title="aggregateByKey算子"></a>aggregateByKey算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">aggregateByKey</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](zeroValue: <span class="type">U</span>)(seqOp: (<span class="type">U</span>, <span class="type">V</span>) =&gt; <span class="type">U</span>,</span><br><span class="line"> combOp: (<span class="type">U</span>, <span class="type">U</span>) =&gt; <span class="type">U</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">U</span>)]</span><br></pre></td></tr></table></figure>
+<p>取出每个分区内相同 key 的最大值然后分区间相加<br>1、 第一个参数列表中的参数表示初始值<br>2、 第二个参数列表中含有两个参数<br>2.1 第一个参数表示分区内的计算规则<br>2.2 第二个参数表示分区间的计算规则</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 取出每个分区内相同 key 的最大值然后分区间相加</span></span><br><span class="line"><span class="keyword">val</span> rdd =</span><br><span class="line"> sc.makeRDD(<span class="type">List</span>(</span><br><span class="line"> (<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;a&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>),</span><br><span class="line"> (<span class="string">&quot;b&quot;</span>,<span class="number">4</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">5</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">6</span>)</span><br><span class="line"> ),<span class="number">2</span>)</span><br><span class="line"> <span class="keyword">val</span> resultRDD =</span><br><span class="line"> rdd.aggregateByKey(<span class="number">10</span>)(</span><br><span class="line"> (x, y) =&gt; math.max(x,y),</span><br><span class="line"> (x, y) =&gt; x + y</span><br><span class="line"> )</span><br></pre></td></tr></table></figure>
+
+<h3 id="foldByKey算子"><a href="#foldByKey算子" class="headerlink" title="foldByKey算子"></a>foldByKey算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foldByKey</span></span>(zeroValue: <span class="type">V</span>)(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br></pre></td></tr></table></figure>
+<p>当分区内计算规则和分区间计算规则相同时，aggregateByKey 就可以简化为 foldByKey</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 = sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;b&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> dataRDD2 = dataRDD1.foldByKey(<span class="number">0</span>)(_+_)</span><br></pre></td></tr></table></figure>
+
+<h3 id="combineByKey算子"><a href="#combineByKey算子" class="headerlink" title="combineByKey算子"></a>combineByKey算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">combineByKey</span></span>[<span class="type">C</span>](</span><br><span class="line"> createCombiner: <span class="type">V</span> =&gt; <span class="type">C</span>,</span><br><span class="line"> mergeValue: (<span class="type">C</span>, <span class="type">V</span>) =&gt; <span class="type">C</span>,</span><br><span class="line"> mergeCombiners: (<span class="type">C</span>, <span class="type">C</span>) =&gt; <span class="type">C</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">C</span>)]</span><br></pre></td></tr></table></figure>
+<p>最通用的对 key-value 型 rdd 进行聚集操作的聚集函数（aggregation function）。类似于aggregate()，combineByKey()允许用户返回值的类型与输入不一致。<br><strong>reduceByKey、foldByKey、aggregateByKey、combineByKey 的区别</strong>:<br>&amp;nbsp;reduceByKey: 相同 key 的第一个数据不进行任何计算，分区内和分区间计算规则相同<br>&amp;nbsp;FoldByKey: 相同 key 的第一个数据和初始值进行分区内计算，分区内和分区间计算规则相同<br>&amp;nbsp;AggregateByKey：相同 key 的第一个数据和初始值进行分区内计算，分区内和分区间计算规则可以不相同<br>&amp;nbsp;CombineByKey:当计算时，发现数据结构不满足要求时，可以让第一个数据转换结构。分区内和分区间计算规则不相同<br><strong>本质上四个算子都是对combineByKeyWithClassTag方法的封装</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将数据 List((&quot;a&quot;, 88), (&quot;b&quot;, 95), (&quot;a&quot;, 91), (&quot;b&quot;, 93), (&quot;a&quot;, 95), (&quot;b&quot;, 98))求每个 key 的平均值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> list: <span class="type">List</span>[(<span class="type">String</span>, <span class="type">Int</span>)] = <span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">88</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">95</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">91</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">93</span>),</span><br><span class="line">(<span class="string">&quot;a&quot;</span>, <span class="number">95</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">98</span>))</span><br><span class="line"><span class="keyword">val</span> input: <span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">Int</span>)] = sc.makeRDD(list, <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> combineRdd: <span class="type">RDD</span>[(<span class="type">String</span>, (<span class="type">Int</span>, <span class="type">Int</span>))] = input.combineByKey(</span><br><span class="line"> (_, <span class="number">1</span>),</span><br><span class="line"> (acc: (<span class="type">Int</span>, <span class="type">Int</span>), v) =&gt; (acc._1 + v, acc._2 + <span class="number">1</span>),</span><br><span class="line"> (acc1: (<span class="type">Int</span>, <span class="type">Int</span>), acc2: (<span class="type">Int</span>, <span class="type">Int</span>)) =&gt; (acc1._1 + acc2._1, acc1._2 + acc2._2)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="sortByKey算子"><a href="#sortByKey算子" class="headerlink" title="sortByKey算子"></a>sortByKey算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sortByKey</span></span>(ascending: <span class="type">Boolean</span> = <span class="literal">true</span>, numPartitions: <span class="type">Int</span> = self.partitions.length)</span><br><span class="line"> : <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br></pre></td></tr></table></figure>
+<p>在一个(K,V)的 RDD 上调用，K 必须实现 Ordered 接口(特质)(即键必须能够进行排序)，返回一个按照 key 进行排序的</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 = sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;b&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> sortRDD1: <span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">Int</span>)] = dataRDD1.sortByKey(<span class="literal">true</span>)</span><br><span class="line"><span class="keyword">val</span> sortRDD1: <span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">Int</span>)] = dataRDD1.sortByKey(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="join算子"><a href="#join算子" class="headerlink" title="join算子"></a>join算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">join</span></span>[<span class="type">W</span>](other: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">W</span>)]): <span class="type">RDD</span>[(<span class="type">K</span>, (<span class="type">V</span>, <span class="type">W</span>))]</span><br></pre></td></tr></table></figure>
+<p>在类型为(K,V)和(K,W)的 RDD 上调用，返回一个相同 key 对应的所有元素连接在一起的(K,(V,W))的 RDD<br>如果数据中有多个相同的key，会一次进行匹配，类似于笛卡尔乘积（得到多个二元组，而不是一个多元组），数据量会呈几何增长，有内存风险</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">String</span>)] = sc.makeRDD(<span class="type">Array</span>((<span class="number">1</span>, <span class="string">&quot;a&quot;</span>), (<span class="number">2</span>, <span class="string">&quot;b&quot;</span>), (<span class="number">3</span>, <span class="string">&quot;c&quot;</span>)))</span><br><span class="line"><span class="keyword">val</span> rdd1: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">Int</span>)] = sc.makeRDD(<span class="type">Array</span>((<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">6</span>)))</span><br><span class="line">rdd.join(rdd1)</span><br></pre></td></tr></table></figure>
+
+<h3 id="leftOuterJoin算子"><a href="#leftOuterJoin算子" class="headerlink" title="leftOuterJoin算子"></a>leftOuterJoin算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">leftOuterJoin</span></span>[<span class="type">W</span>](other: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">W</span>)]): <span class="type">RDD</span>[(<span class="type">K</span>, (<span class="type">V</span>, <span class="type">Option</span>[<span class="type">W</span>]))]</span><br></pre></td></tr></table></figure>
+<p>类似于 SQL 语句的左外连接</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 = sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;b&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> dataRDD2 = sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;b&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[(<span class="type">String</span>, (<span class="type">Int</span>, <span class="type">Option</span>[<span class="type">Int</span>]))] = dataRDD1.leftOuterJoin(dataRDD2)</span><br></pre></td></tr></table></figure>
+
+<h3 id="cogroup算子"><a href="#cogroup算子" class="headerlink" title="cogroup算子"></a>cogroup算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cogroup</span></span>[<span class="type">W</span>](other: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">W</span>)]): <span class="type">RDD</span>[(<span class="type">K</span>, (<span class="type">Iterable</span>[<span class="type">V</span>], <span class="type">Iterable</span>[<span class="type">W</span>]))]</span><br></pre></td></tr></table></figure>
+<p>在类型为(K,V)和(K,W)的 RDD 上调用，返回一个(K,(Iterable<V>,Iterable<W>))类型的 RDD<br>cogroup &#x3D; connect+group<br>不理解可以看函数签名的返回值类型，第一个集合是RDD1的值，第二个集合中是RDD2的值，可能为空也可能有多个</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> dataRDD1 = sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;a&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> dataRDD2 = sparkContext.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>,<span class="number">1</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">2</span>),(<span class="string">&quot;c&quot;</span>,<span class="number">3</span>)))</span><br><span class="line"><span class="keyword">val</span> value: <span class="type">RDD</span>[(<span class="type">String</span>, (<span class="type">Iterable</span>[<span class="type">Int</span>], <span class="type">Iterable</span>[<span class="type">Int</span>]))] =</span><br><span class="line">dataRDD1.cogroup(dataRDD2)</span><br></pre></td></tr></table></figure>
+
+<h1 id="行动算子"><a href="#行动算子" class="headerlink" title="行动算子"></a>行动算子</h1><p>行动算子会触发作业的执行<br>底层代码调用的是环境对象的runJob方法<br>底层代码会创建ActionJob，并提交执行</p>
+<h3 id="reduce算子"><a href="#reduce算子" class="headerlink" title="reduce算子"></a>reduce算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reduce</span></span>(f: (<span class="type">T</span>, <span class="type">T</span>) =&gt; <span class="type">T</span>): <span class="type">T</span></span><br></pre></td></tr></table></figure>
+<p>聚集 RDD 中的所有元素，先聚合分区内数据，再聚合分区间数据<br><strong>注意与reduceByKey进行区分</strong> </p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment">// 聚合数据</span></span><br><span class="line"><span class="keyword">val</span> reduceResult: <span class="type">Int</span> = rdd.reduce(_+_)<span class="comment">// 返回值为Int类型</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="collect算子"><a href="#collect算子" class="headerlink" title="collect算子"></a>collect算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">collect</span></span>(): <span class="type">Array</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>在驱动程序中，以数组 Array 的形式返回数据集的所有元素</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment">// 收集数据到 Driver</span></span><br><span class="line">rdd.collect().foreach(println)</span><br></pre></td></tr></table></figure>
+
+<h3 id="count算子"><a href="#count算子" class="headerlink" title="count算子"></a>count算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">count</span></span>(): <span class="type">Long</span></span><br></pre></td></tr></table></figure>
+<p>返回 RDD 中元素的个数</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment">// 返回 RDD 中元素的个数</span></span><br><span class="line"><span class="keyword">val</span> countResult: <span class="type">Long</span> = rdd.count()</span><br></pre></td></tr></table></figure>
+
+<h3 id="first算子"><a href="#first算子" class="headerlink" title="first算子"></a>first算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">first</span></span>(): <span class="type">T</span></span><br></pre></td></tr></table></figure>
+<p>返回 RDD 中的第一个元素</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment">// 返回 RDD 中元素的个数</span></span><br><span class="line"><span class="keyword">val</span> firstResult: <span class="type">Int</span> = rdd.first()</span><br><span class="line">println(firstResult)</span><br></pre></td></tr></table></figure>
+
+<h3 id="take算子"><a href="#take算子" class="headerlink" title="take算子"></a>take算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">take</span></span>(num: <span class="type">Int</span>): <span class="type">Array</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>返回一个由 RDD 的前 n 个元素组成的数组</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment">// 返回 RDD 中元素的个数</span></span><br><span class="line"><span class="keyword">val</span> takeResult: <span class="type">Array</span>[<span class="type">Int</span>] = rdd.take(<span class="number">2</span>)</span><br><span class="line">println(takeResult.mkString(<span class="string">&quot;,&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="takeOrdered算子"><a href="#takeOrdered算子" class="headerlink" title="takeOrdered算子"></a>takeOrdered算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">takeOrdered</span></span>(num: <span class="type">Int</span>)(<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>]): <span class="type">Array</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+<p>返回该 RDD 排序后的前 n 个元素组成的数组</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment">// 返回 RDD 中元素的个数</span></span><br><span class="line"><span class="keyword">val</span> result: <span class="type">Array</span>[<span class="type">Int</span>] = rdd.takeOrdered(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="aggregate算子"><a href="#aggregate算子" class="headerlink" title="aggregate算子"></a>aggregate算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">aggregate</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](zeroValue: <span class="type">U</span>)(</span><br><span class="line">   seqOp: (<span class="type">U</span>, <span class="type">T</span>) =&gt; <span class="type">U</span>, combOp: (<span class="type">U</span>, <span class="type">U</span>) =&gt; <span class="type">U</span>)</span><br><span class="line">   : <span class="type">U</span></span><br></pre></td></tr></table></figure>
+<p>分区的数据通过初始值和分区内的数据进行聚合，然后再和初始值进行分区间的数据聚合<br><strong>区别于aggregateByKey算子</strong>，aggregateByKey得到新的RDD，aggregate直接得到结果<br><strong>注意</strong>：aggregateByKey的初始值只会参与分区内的计算，aggregate不仅只进行分区内的计算，还会进行分区之间的计算！</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>), <span class="number">8</span>)</span><br><span class="line"><span class="comment">// 将该 RDD 所有元素相加得到结果</span></span><br><span class="line"><span class="comment">//val result: Int = rdd.aggregate(0)(_ + _, _ + _)</span></span><br><span class="line"><span class="keyword">val</span> result: <span class="type">Int</span> = rdd.aggregate(<span class="number">10</span>)(_ + _, _ + _)</span><br></pre></td></tr></table></figure>
+
+<h3 id="fold算子"><a href="#fold算子" class="headerlink" title="fold算子"></a>fold算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fold</span></span>(zeroValue: <span class="type">T</span>)(op: (<span class="type">T</span>, <span class="type">T</span>) =&gt; <span class="type">T</span>): <span class="type">T</span> </span><br></pre></td></tr></table></figure>
+<p>折叠操作，aggregate 的简化版操作，分区内和分区间的操作相同</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">val</span> foldResult: <span class="type">Int</span> = rdd.fold(<span class="number">0</span>)(_+_)</span><br></pre></td></tr></table></figure>
+
+<h3 id="countByKey算子"><a href="#countByKey算子" class="headerlink" title="countByKey算子"></a>countByKey算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">countByKey</span></span>(): <span class="type">Map</span>[<span class="type">K</span>, <span class="type">Long</span>]</span><br></pre></td></tr></table></figure>
+<p>统计每种 key 的个数<br>与该算子类似的还有countByValue算子，统计值的个数，用于单值类型RDD </p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">String</span>)] = sc.makeRDD(<span class="type">List</span>((<span class="number">1</span>, <span class="string">&quot;a&quot;</span>), (<span class="number">1</span>, <span class="string">&quot;a&quot;</span>), (<span class="number">1</span>, <span class="string">&quot;a&quot;</span>), (<span class="number">2</span>,</span><br><span class="line"><span class="string">&quot;b&quot;</span>), (<span class="number">3</span>, <span class="string">&quot;c&quot;</span>), (<span class="number">3</span>, <span class="string">&quot;c&quot;</span>)))</span><br><span class="line"><span class="comment">// 统计每种 key 的个数</span></span><br><span class="line"><span class="keyword">val</span> result: collection.<span class="type">Map</span>[<span class="type">Int</span>, <span class="type">Long</span>] = rdd.countByKey()</span><br></pre></td></tr></table></figure>
+
+<h3 id="save相关算子"><a href="#save相关算子" class="headerlink" title="save相关算子"></a>save相关算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">saveAsTextFile</span></span>(path: <span class="type">String</span>): <span class="type">Unit</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">saveAsObjectFile</span></span>(path: <span class="type">String</span>): <span class="type">Unit</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">saveAsSequenceFile</span></span>(</span><br><span class="line"> path: <span class="type">String</span>,</span><br><span class="line"> codec: <span class="type">Option</span>[<span class="type">Class</span>[_ &lt;: <span class="type">CompressionCodec</span>]] = <span class="type">None</span>): <span class="type">Unit</span></span><br></pre></td></tr></table></figure>
+<p>将数据保存到不同格式的文件中<br><strong>saveAsSequenceFile必须是键值类型RDD</strong></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 保存成 Text 文件</span></span><br><span class="line">rdd.saveAsTextFile(<span class="string">&quot;output&quot;</span>)</span><br><span class="line"><span class="comment">// 序列化成对象保存到文件</span></span><br><span class="line">rdd.saveAsObjectFile(<span class="string">&quot;output1&quot;</span>)</span><br><span class="line"><span class="comment">// 保存成 Sequencefile 文件</span></span><br><span class="line">rdd.map((_,<span class="number">1</span>)).saveAsSequenceFile(<span class="string">&quot;output2&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="foreach算子"><a href="#foreach算子" class="headerlink" title="foreach算子"></a>foreach算子</h3><p>函数签名：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foreach</span></span>(f: <span class="type">T</span> =&gt; <span class="type">Unit</span>): <span class="type">Unit</span> = withScope &#123;</span><br><span class="line"> <span class="keyword">val</span> cleanF = sc.clean(f)</span><br><span class="line"> sc.runJob(<span class="keyword">this</span>, (iter: <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; iter.foreach(cleanF))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>分布式遍历 RDD 中的每一个元素，调用指定函数</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>))</span><br><span class="line"><span class="comment">// 这里的foreach是在driver端的内存中进行打印的</span></span><br><span class="line">rdd.collect().foreach(println)    <span class="comment">// 1 2 3 4</span></span><br><span class="line">println(<span class="string">&quot;*******************&quot;</span>)</span><br><span class="line"><span class="comment">// 这里的foreach是在excutor端内存中进行打印的</span></span><br><span class="line">rdd.foreach(println)    <span class="comment">// 2 1 3 4(无序)</span></span><br></pre></td></tr></table></figure>
+
+
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spark/" rel="tag"><i class="fa fa-tag"></i> spark</a>
+          
+            <a href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag"><i class="fa fa-tag"></i> 学习</a>
+          
+            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 大数据系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/02/07/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/" rel="next" title="测试文章">
+                <i class="fa fa-chevron-left"></i> 测试文章
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/02/08/RDD%E5%B9%B6%E8%A1%8C%E5%BA%A6%E5%92%8C%E5%88%86%E5%8C%BA/" rel="prev" title="RDD并行度和分区">
+                RDD并行度和分区 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/%E5%A4%B4%E5%83%8F.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/index.html">
+              
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD%E7%9A%84%E5%88%9B%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">RDD的创建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E9%9B%86%E5%90%88%EF%BC%88%E5%86%85%E5%AD%98%EF%BC%89%E4%B8%AD%E5%88%9B%E5%BB%BARDD"><span class="nav-number">1.1.</span> <span class="nav-text">从集合（内存）中创建RDD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E5%A4%96%E9%83%A8%E5%AD%98%E5%82%A8%EF%BC%88%E6%96%87%E4%BB%B6%EF%BC%89%E5%88%9B%E5%BB%BARDD"><span class="nav-number">1.2.</span> <span class="nav-text">从外部存储（文件）创建RDD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E5%85%B6%E4%BB%96-RDD-%E5%88%9B%E5%BB%BA"><span class="nav-number">1.3.</span> <span class="nav-text">从其他 RDD 创建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E5%88%9B%E5%BB%BA-RDD%EF%BC%88new%EF%BC%89"><span class="nav-number">1.4.</span> <span class="nav-text">直接创建 RDD（new）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RDD%E8%BD%AC%E6%8D%A2%E7%AE%97%E5%AD%90"><span class="nav-number"></span> <span class="nav-text">RDD转换算子</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Value%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">Value类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#map%E7%AE%97%E5%AD%90"><span class="nav-number">1.1.</span> <span class="nav-text">map算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mapPartition%E7%AE%97%E5%AD%90"><span class="nav-number">1.2.</span> <span class="nav-text">mapPartition算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mapPartitionsWithIndex%E7%AE%97%E5%AD%90"><span class="nav-number">1.3.</span> <span class="nav-text">mapPartitionsWithIndex算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flatMap%E7%AE%97%E5%AD%90"><span class="nav-number">1.4.</span> <span class="nav-text">flatMap算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#glom%E7%AE%97%E5%AD%90"><span class="nav-number">1.5.</span> <span class="nav-text">glom算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#groupBy%E7%AE%97%E5%AD%90"><span class="nav-number">1.6.</span> <span class="nav-text">groupBy算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#filter%E7%AE%97%E5%AD%90"><span class="nav-number">1.7.</span> <span class="nav-text">filter算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sample%E7%AE%97%E5%AD%90"><span class="nav-number">1.8.</span> <span class="nav-text">sample算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#distinct%E7%AE%97%E5%AD%90"><span class="nav-number">1.9.</span> <span class="nav-text">distinct算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#coalesce%E7%AE%97%E5%AD%90"><span class="nav-number">1.10.</span> <span class="nav-text">coalesce算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#repartition%E7%AE%97%E5%AD%90"><span class="nav-number">1.11.</span> <span class="nav-text">repartition算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sortBy%E7%AE%97%E5%AD%90"><span class="nav-number">1.12.</span> <span class="nav-text">sortBy算子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8CValue%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">双Value类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#intersection%E7%AE%97%E5%AD%90"><span class="nav-number">2.1.</span> <span class="nav-text">intersection算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#union%E7%AE%97%E5%AD%90"><span class="nav-number">2.2.</span> <span class="nav-text">union算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#subtract%E7%AE%97%E5%AD%90"><span class="nav-number">2.3.</span> <span class="nav-text">subtract算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#zip%E7%AE%97%E5%AD%90"><span class="nav-number">2.4.</span> <span class="nav-text">zip算子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Key-Value-%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">Key - Value 类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#partitionBy%E7%AE%97%E5%AD%90"><span class="nav-number">3.1.</span> <span class="nav-text">partitionBy算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reduceByKey%E7%AE%97%E5%AD%90"><span class="nav-number">3.2.</span> <span class="nav-text">reduceByKey算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#groupByKey%E7%AE%97%E5%AD%90"><span class="nav-number">3.3.</span> <span class="nav-text">groupByKey算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#aggregateByKey%E7%AE%97%E5%AD%90"><span class="nav-number">3.4.</span> <span class="nav-text">aggregateByKey算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#foldByKey%E7%AE%97%E5%AD%90"><span class="nav-number">3.5.</span> <span class="nav-text">foldByKey算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#combineByKey%E7%AE%97%E5%AD%90"><span class="nav-number">3.6.</span> <span class="nav-text">combineByKey算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sortByKey%E7%AE%97%E5%AD%90"><span class="nav-number">3.7.</span> <span class="nav-text">sortByKey算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#join%E7%AE%97%E5%AD%90"><span class="nav-number">3.8.</span> <span class="nav-text">join算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leftOuterJoin%E7%AE%97%E5%AD%90"><span class="nav-number">3.9.</span> <span class="nav-text">leftOuterJoin算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cogroup%E7%AE%97%E5%AD%90"><span class="nav-number">3.10.</span> <span class="nav-text">cogroup算子</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A1%8C%E5%8A%A8%E7%AE%97%E5%AD%90"><span class="nav-number"></span> <span class="nav-text">行动算子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#reduce%E7%AE%97%E5%AD%90"><span class="nav-number">0.1.</span> <span class="nav-text">reduce算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#collect%E7%AE%97%E5%AD%90"><span class="nav-number">0.2.</span> <span class="nav-text">collect算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#count%E7%AE%97%E5%AD%90"><span class="nav-number">0.3.</span> <span class="nav-text">count算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#first%E7%AE%97%E5%AD%90"><span class="nav-number">0.4.</span> <span class="nav-text">first算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#take%E7%AE%97%E5%AD%90"><span class="nav-number">0.5.</span> <span class="nav-text">take算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#takeOrdered%E7%AE%97%E5%AD%90"><span class="nav-number">0.6.</span> <span class="nav-text">takeOrdered算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#aggregate%E7%AE%97%E5%AD%90"><span class="nav-number">0.7.</span> <span class="nav-text">aggregate算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fold%E7%AE%97%E5%AD%90"><span class="nav-number">0.8.</span> <span class="nav-text">fold算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#countByKey%E7%AE%97%E5%AD%90"><span class="nav-number">0.9.</span> <span class="nav-text">countByKey算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#save%E7%9B%B8%E5%85%B3%E7%AE%97%E5%AD%90"><span class="nav-number">0.10.</span> <span class="nav-text">save相关算子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#foreach%E7%AE%97%E5%AD%90"><span class="nav-number">0.11.</span> <span class="nav-text">foreach算子</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangx</span>
+
+  
+</div>
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script    >
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'dMugADFGtP6HenabM1kKXqQM-gzGzoHsz',
+        appKey: 'MSJ4JTh0imLd5KUUFsY0r95f',
+        placeholder: '输入评论',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="/js/src/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    new Valine({
+        lang: 'zh-cn',
+        admin_email:'2670300746@qq.com', //填写博主邮箱 
+        el: '#comments' ,
+        appId: 'dMugADFGtP6HenabM1kKXqQM-gzGzoHsz',
+        appKey: 'MSJ4JTh0imLd5KUUFsY0r95f',
+        emoticon_url: 'https://cloud.panjunwen.com/alu',
+        emoticon_list: ["狂汗.png","不说话.png","汗.png","坐等.png","献花.png","不高兴.png","中刀.png","害羞.png","皱眉.png","小眼睛.png","暗地观察.png"],
+        placeholder: '输入评论',
+  });
+  </script>
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
